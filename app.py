@@ -1,7 +1,6 @@
 from datetime import datetime
 
 from flask import Flask, render_template
-from sqlalchemy import create_engine
 
 from api.csdn import cs, GetArticle
 from models import db, Info, Categorize, Article

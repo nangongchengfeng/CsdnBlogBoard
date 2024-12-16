@@ -6,7 +6,6 @@
 # @Software: PyCharm
 from datetime import datetime
 
-import pandas as pd
 from flask import Blueprint, jsonify, request
 
 from common.result.result import Result
