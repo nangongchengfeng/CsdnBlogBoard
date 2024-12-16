@@ -447,7 +447,13 @@ async function updateArticleList(filterType = null, filterYear = null, fileQuart
     try {
         // 异步获取文章数据
         const response = await axios.get('/api/articles?' + params.toString());
-        const articles = response.data;
+        const resData = response.data;
+        // 检查后端响应是否正确
+        if (resData.code !== 200 || !resData.data) {
+            console.error('后端返回错误或无有效数据');
+            return;
+        }
+        const articles = resData.data;
 
         // 动态生成 HTML 表格
         const tableHtml = `
