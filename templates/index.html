@@ -1,0 +1,235 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ info.author_name }} 博客Board</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+    <style>
+        /* 悬停效果 */
+        .stat-card:hover,
+        .chart-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        :root {
+            --bg-primary: #f7f8fa;
+            --bg-secondary: #ffffff;
+            --text-primary: #333333;
+            --text-secondary: #555555;
+            --accent-color: #0066cc;
+            --border-radius: 12px;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body,
+        html {
+            height: 100%;
+            font-family: 'Noto Sans', sans-serif;
+            background-color: var(--bg-primary);
+            overflow: hidden;
+        }
+
+        .dashboard-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding: 15px;
+            gap: 15px;
+        }
+
+        .top-section {
+            height: 8.5vh;
+            /* 8分之一 */
+            display: flex;
+            gap: 8px;
+        }
+
+        .mac-header {
+            flex: 0 0 25%;
+            background-color: var(--bg-secondary);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* 居中对齐 */
+            padding: 15px;
+        }
+
+        .mac-header a {
+            text-decoration: none;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .header-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-right: 15px;
+            object-fit: cover;
+        }
+
+        .stats-grid {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            background-color: var(--bg-secondary);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 0 15px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .stat-card {
+            display: inline-flex;
+            align-items: center;
+            margin: 0 10px;
+            color: var(--text-primary);
+        }
+
+        .stat-icon {
+            margin-right: 8px;
+            font-size: 1.2rem;
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: var(--accent-color);
+        }
+
+        .charts-container {
+            height: 87.5vh;
+            /* 8分之7 */
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .chart-row {
+            display: flex;
+            gap: 15px;
+            flex: 1;
+            min-height: 40%;
+            /* 设置最小高度 */
+        }
+
+        .chart-card {
+            flex: 1;
+            background-color: var(--bg-secondary);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100%;
+            position: relative;
+            /* 确保内部元素定位 */
+        }
+
+        .chart-title {
+            margin-bottom: 10px;
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .chart-content {
+            flex: 1;
+            height: 100%;
+            /* 固定内容高度 */
+            overflow-y: auto;
+            /* 设置为可滚动 */
+            color: var(--text-secondary);
+        }
+
+        .year-select {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: var(--bg-secondary);
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 8px;
+            box-shadow: var(--shadow);
+            z-index: 10;
+        }
+    </style>
+    <script src="{{ url_for('static', filename='js/axios.min.js') }}"></script>
+</head>
+<body>
+<div class="dashboard-container">
+    <div class="top-section">
+        <header class="mac-header">
+            <a href="https://blog.csdn.net/heian_99">
+                <img src="https://www.ownit.top/img/avatar_hu227367ba8544f2fc7811ed9508937bec_102665_300x0_resize_box_3.png"
+                     alt="{{ info.author_name }}头像" class="header-avatar">
+            </a>
+            <a href="https://blog.csdn.net/heian_99" target="_blank">
+                <h1 style="color: #0066cc">{{ info.author_name }} 博客洞察</h1>
+            </a>
+        </header>
+
+        <section class="stats-grid">
+            <div class="stat-card"><span class="stat-icon">📝</span> 文章数：<span
+                    class="stat-value">{{ info.article_num }}</span></div>
+            <div class="stat-card"><span class="stat-icon">👥</span> 关注数：<span
+                    class="stat-value">{{ info.fans_num }}</span></div>
+            <div class="stat-card"><span class="stat-icon">❤️</span> 喜欢数：<span
+                    class="stat-value">{{ info.like_num }}</span></div>
+            <div class="stat-card"><span class="stat-icon">💬</span> 评论数：<span
+                    class="stat-value">{{ info.comment_num }}</span></div>
+            <div class="stat-card"><span class="stat-icon">🏆</span> 等级：<span
+                    class="stat-value">{{ info.level }}</span></div>
+            <div class="stat-card"><span class="stat-icon">👁️</span> 访问数：<span
+                    class="stat-value">{{ info.visit_num }}</span></div>
+            <div class="stat-card"><span class="stat-icon">✨</span> 积分：<span
+                    class="stat-value">{{ info.score }}</span></div>
+            <div class="stat-card"><span class="stat-icon">🏅</span> 排名：<span class="stat-value">{{ info.rank }}</span>
+            </div>
+        </section>
+    </div>
+    <section class="charts-container">
+        <div class="chart-row">
+            <div class="chart-card">
+                <h3 class="chart-title">每季度文章写作情况</h3>
+                <div id="bar" class="chart-content"></div>
+            </div>
+            <div class="chart-card">
+                <h3 class="chart-title">各类型文章占比情况</h3>
+                <div id="pie" class="chart-content"></div>
+            </div>
+            <div class="chart-card">
+                <h3 class="chart-title">各类型文章阅读情况</h3>
+                <div id="mix" class="chart-content"></div>
+            </div>
+        </div>
+
+        <div class="chart-row">
+            <div class="chart-card">
+                <h3 class="chart-title" id="chartTitle"> {{ latest_year }} 年 写作发布热力图</h3>
+                <div id="heatmap" class="chart-content"></div>
+                <select class="year-select" id="yearSelect">
+                    {% for year in years %}
+                        <option value="{{ year }}" {% if year==latest_year %}selected{% endif %}>{{ year }}年</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="chart-card">
+                <h3 class="chart-title">文章列表</h3>
+                <div id="articleList" class="chart-content"></div>
+            </div>
+        </div>
+    </section>
+</div>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
