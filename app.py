@@ -9,10 +9,10 @@ from models import db, Info, Categorize, Article
 # Initialize Flask app
 app = Flask(__name__)
 # 配置缓存
-cache.init_app(app, config={
-    'CACHE_TYPE': 'filesystem',
-    'CACHE_DIR': 'cache-directory'
-})
+# cache.init_app(app, config={
+#     'CACHE_TYPE': 'filesystem',
+#     'CACHE_DIR': 'cache-directory'
+# })
 # Configure database settings
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:xxxx@43.xxxx.xxxx.5:3306/csdn'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False

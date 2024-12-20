@@ -27,7 +27,6 @@ def get_quarter(month):
 
 
 @cs.route('/data')
-@cache.cached(timeout=60)
 def GetArticle():
     try:
         articles = Article.query.filter().all()
@@ -63,7 +62,6 @@ from collections import defaultdict
 
 
 @cs.route('/quarter')
-@cache.cached(timeout=60)
 def GetQuarter():
     """
     获取 每年 每 季度 博客 数量
@@ -87,7 +85,6 @@ def GetQuarter():
 
 
 @cs.route('/categorize')
-@cache.cached(timeout=60)
 def Pie():
     # 查询数据库获取分类信息
     categorize_data = Categorize.query.all()
@@ -106,7 +103,6 @@ def Pie():
 
 
 @cs.route('/read')
-@cache.cached(timeout=60)
 def GetRead():
     """统计各个类型文件的名称对应的阅读量和文章数量"""
     data = GetArticle()
@@ -130,7 +126,6 @@ def GetRead():
 
 
 @cs.route('/heatmap/<int:year>')
-@cache.cached(timeout=60)
 def GetHeatmap(year):
     """
     获取指定年份的文章发布热力图数据
@@ -175,7 +170,6 @@ def GetHeatmap(year):
 
 
 @cs.route('/articles')
-@cache.cached(timeout=60)
 def GetArticles():
     """获取文章列表"""
     articles= GetArticle()
