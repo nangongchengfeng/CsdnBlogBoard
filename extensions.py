@@ -5,6 +5,6 @@
 # @File    : extensions.py.py
 # @Software: PyCharm
 # extensions.py
-from flask_caching import Cache
+# from flask_caching import Cache
 
-cache = Cache()
+# cache = Cache()

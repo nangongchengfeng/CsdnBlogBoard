@@ -17,94 +17,198 @@ headers = {
 }
 
 
+def to_int(s):
+    try:
+        return int(s.replace(',', '').strip())
+    except:
+        return 0
+
+
 def get_info():
     """获取大屏第一列信息数据并存储到数据库"""
 
     # 我的博客地址
-    url = 'https://blog.csdn.net/heian_99/article/details/105689982'
+    url = 'https://blog.csdn.net/heian_99'
     max_retries = 3
     retry_count = 0
 
+    # 循环用于重试
     while retry_count < max_retries:
         try:
+            print(f"尝试抓取数据 (第 {retry_count + 1}/{max_retries} 次)...")
             resp = requests.get(url, headers=headers)
-            resp.raise_for_status()  # 检查响应状态
-            now = dt.datetime.now().strftime("%Y-%m-%d %X")
+            resp.raise_for_status()  # 检查响应状态，如果不是 2xx 会抛出异常
+            now = dt.datetime.now().strftime("%Y-%m-%d %X")  # 这个 now 变量似乎没有被使用
 
             soup = BeautifulSoup(resp.text, 'lxml')
+            # 获取用户信息的数据源
+            user_info_container = soup.find('div', class_='user-profile-head-info-r-c')
 
-            # 获取用户信息
-            user_info = soup.find('div', class_='user-info d-flex flex-column profile-intro-name-box')
-            if not user_info:
-                raise ValueError("Cannot find user info section")
-            author_name = user_info.find('a').get_text(strip=True)
+            if not user_info_container:
+                # 如果找不到容器，直接抛出错误，进入 except 块进行重试或结束
+                raise ValueError("没有找到用户信息数据源，请检查CSDN的HTML页面结构。")
 
-            # 获取头像
-            avatar_box = soup.find('div', class_='avatar-box d-flex justify-content-center flex-column')
-            if not avatar_box:
-                raise ValueError("Cannot find avatar section")
-            head_img = avatar_box.find('a').find('img')['src']
+            extracted_statistics = {}
 
-            # 获取统计数据
-            data_info = soup.find_all('div', class_='data-info d-flex item-tiling')
-            if len(data_info) < 2:
-                raise ValueError("Cannot find data info section")
+            # 1. 从 user_info_container 中找到所有的 <li> 元素
+            list_items = user_info_container.find_all('li')
 
-            row1_nums = data_info[0].find_all('span', class_='count')
-            row2_nums = data_info[1].find_all('span', class_='count')
+            # 2. & 3. 遍历每个 <li> 并提取信息
+            for item in list_items:
+                name_div = item.find('div', class_='user-profile-statistics-name')
+                num_div = item.find('div', class_='user-profile-statistics-num')
 
-            if len(row1_nums) < 4 or len(row2_nums) < 4:
-                raise ValueError("Incomplete data info")
+                if name_div and num_div:
+                    label = name_div.get_text(strip=True)
+                    value = num_div.get_text(strip=True)
+                    # 4. 存储信息
+                    extracted_statistics[label] = value
 
-            level_mes = data_info[0].find_all('dl')[-1]['title'].split(',')[0]
+            print("用户统计数据:", extracted_statistics)  # 添加标签说明打印的是什么数据
+
+            # 获取统计数据 (成就数据)
+            data_info_list = soup.find_all('ul', class_='aside-common-box-achievement')
+
+            if not data_info_list:
+                # 如果找不到容器，直接抛出错误
+                raise ValueError("没有找到data_info数据源，请检查CSDN的HTML页面结构。")
+
+            target_keywords = {
+                "点赞": "点赞",
+                "评论": "评论",
+                "收藏": "收藏",
+                "分享": "分享"
+            }
+            extracted_achievements = {}
+            # 2. 遍历找到的 <ul> 元素
+            for ul_element in data_info_list:
+                # 3. 在每个 <ul> 内部，找到所有的 <li> 元素
+                list_items = ul_element.find_all('li')
+
+                # 4. 遍历每个 <li>
+                for li_item in list_items:
+                    # 4a. 找到包含描述文本的 <div>
+                    text_container_div = li_item.find('div')
+                    if not text_container_div:
+                        continue
+
+                    # 4b. 在 <div> 内找到包含数字的 <span>
+                    num_span = text_container_div.find('span')
+
+                    if num_span:
+                        # 4c. 获取数字文本
+                        value_str = num_span.get_text(strip=True)
+
+                        # 4d. 获取 <div> 的完整文本内容 (包括其子元素如 <em>) 来匹配关键词
+                        full_text_content = text_container_div.get_text(strip=True)
+
+                        for keyword, label_name in target_keywords.items():
+                            if keyword in full_text_content:
+                                # 5. 存储提取到的信息
+                                extracted_achievements[label_name] = value_str
+                                # 假设每个li只对应一个目标成就，找到后可以跳出内层循环
+                                break
+
+            print("成就统计数据:", extracted_achievements)  # 添加标签说明打印的是什么数据
+            code_age_div = soup.find('div', class_='person-code-age')
+
+            code_age_text = None  # 初始化变量
+
+            if code_age_div:
+                # 在找到的 div 中查找 span 标签
+                span_tag = code_age_div.find('span')
+                if span_tag:
+                    # 提取 span 标签的文本内容，并去除首尾空白
+                    code_age_text = span_tag.get_text(strip=True)
+                    print(f"方法1抓取到的码龄：{code_age_text}")
+            else:
+                print("方法1未找到码龄所在的 div 元素。")
+
+            author_name = soup.find('div', class_='user-profile-head-name').find('div').get_text(strip=True)
+            print("作者姓名:", author_name)
+
+            img_tag_css = soup.select_one('div.user-profile-avatar img')
+
+            if img_tag_css:
+                # 获取 img 标签的 src 属性值
+                image_url_css = img_tag_css.get('src')
+                print(f"方法2抓取到的图像链接：{image_url_css}")
+            else:
+                print("方法2未找到用户头像所在的 img 元素。")
+            print("数据抓取成功！")
 
             info = {
-                'date': now,  # 时间
-                'head_img': head_img,  # 头像
-                'author_name': author_name,  # 用户名
-                'article_num': str(row1_nums[0].get_text()),  # 文章数
-                'fans_num': str(row2_nums[1].get_text()),  # 粉丝数
-                'like_num': str(row2_nums[2].get_text()),  # 喜欢数
-                'comment_num': str(row2_nums[3].get_text()),  # 评论数
-                'level': level_mes,  # 等级
-                'visit_num': str(row1_nums[3].get_text()),  # 访问数
-                'score': str(row2_nums[0].get_text()),  # 积分
-                'rank': str(row1_nums[2].get_text()),  # 排名
+                'date': now,
+                'head_img': image_url_css,
+                'author_name': author_name,
+                'code_age': code_age_text or '',
+                # 统计字段
+                'article_num': to_int(extracted_statistics.get('原创', '0')),
+                'fans_num': to_int(extracted_statistics.get('粉丝', '0')),
+                'visit_num': to_int(extracted_statistics.get('总访问量', '0')),
+                # 成就字段
+                'like_num': to_int(extracted_achievements.get('点赞', '0')),
+                'comment_num': to_int(extracted_achievements.get('评论', '0')),
+                'collect_num': to_int(extracted_achievements.get('收藏', '0')),
+                'share_num': to_int(extracted_achievements.get('分享', '0')),
+                # 如有额外字段，可按需添加
+                'rank': to_int(extracted_statistics.get('排名', '0')),
+                'level': extracted_statistics.get('等级', ''),
+                'score': to_int(extracted_statistics.get('积分', '0')),
             }
-
-            # 激活应用上下文
-            with app.app_context():
-                existing_info = Info.query.filter_by(author_name=author_name).first()
-                if existing_info:
-                    existing_info.date = info['date']
-                    existing_info.head_img = info['head_img']
-                    existing_info.article_num = info['article_num']
-                    existing_info.fans_num = info['fans_num']
-                    existing_info.like_num = info['like_num']
-                    existing_info.comment_num = info['comment_num']
-                    existing_info.level = info['level']
-                    existing_info.visit_num = info['visit_num']
-                    existing_info.score = info['score']
-                    existing_info.rank = info['rank']
-                    print("更新用户信息到数据库")
-                else:
-                    new_info = Info(**info)
-                    db.session.add(new_info)
-                    print("添加新用户信息到数据库")
-
-                db.session.commit()
-                print("成功保存数据到数据库")
-                return True
+            print("数据:", info)
+            save_info(info)
+            # === 关键修改：成功后跳出循环 ===
+            break
 
         except Exception as e:
-            retry_count += 1
-            print(f"Error in get_info (attempt {retry_count}/{max_retries}): {str(e)}")
+            retry_count += 1  # 只在发生异常时增加重试计数
+            print(f"抓取过程中发生错误 (尝试 {retry_count}/{max_retries} 次): {str(e)}")
             if retry_count < max_retries:
-                import time
+                print("等待 5 秒后重试...")
                 time.sleep(5)
             else:
-                print("Max retries reached, failed to save data")
-                return False
+                print("达到最大重试次数，抓取失败。")
+                # 达到最大次数后，循环条件不再满足，自动退出循环
+                # 如果你希望函数明确返回失败状态，可以在这里 return False
+                return False  # 添加返回 False 表示失败
+
+    # 如果循环是通过 break 退出的，说明抓取成功
+    # 如果是通过达到 max_retries 且最后一个 except 执行后循环条件不满足而退出的，说明失败 (上面已经 return False)
+    # 所以这里可以添加一个成功时的返回，或者直接让函数结束
+    if retry_count < max_retries:  # 只有在成功时 retry_count 才小于 max_retries
+        return True  # 添加返回 True 表示成功
+
+
+def save_info(info: dict):
+    """在 Flask 应用上下文中，将 info 写入或更新到数据库"""
+    with app.app_context():
+        existing = Info.query.filter_by(author_name=info['author_name']).first()
+        if existing:
+            # 更新已有记录
+            existing.date = info['date']
+            existing.head_img = info['head_img']
+            existing.code_age = info['code_age']
+            existing.article_num = info['article_num']
+            existing.fans_num = info['fans_num']
+            existing.visit_num = info['visit_num']
+            existing.like_num = info['like_num']
+            existing.comment_num = info['comment_num']
+            existing.collect_num = info['collect_num']
+            existing.share_num = info['share_num']
+            existing.rank = info['rank']
+            existing.level = info['level']
+            existing.score = info['score']
+            print("更新用户信息到数据库")
+        else:
+            # 插入新记录
+            new_info = Info(**info)
+            db.session.add(new_info)
+            print("添加新用户信息到数据库")
+
+        db.session.commit()
+        print("成功保存数据到数据库")
+        return True
 
 
 # 爬取分类信息
@@ -344,6 +448,6 @@ def get_blog():
 
 if __name__ == '__main__':
     # main()
-    get_info()
-    get_categorize()
+    # get_info()
+    # get_categorize()
     get_blog()

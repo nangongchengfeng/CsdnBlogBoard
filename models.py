@@ -18,17 +18,23 @@ class Info(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     date = db.Column(db.Text)
-    head_img = db.Column(db.Text)
-    author_name = db.Column(db.Text)
-    article_num = db.Column(db.Text)
-    fans_num = db.Column(db.Text)
-    like_num = db.Column(db.Text)
-    comment_num = db.Column(db.Text)
-    level = db.Column(db.Text)
-    visit_num = db.Column(db.Text)
-    score = db.Column(db.Text)
-    rank = db.Column(db.Text)
+    # 基础用户信息
+    head_img = db.Column(db.Text) # 头像链接
+    author_name = db.Column(db.Text) # 作者姓名
+    code_age = db.Column(db.Text) # 码龄 (如 "码龄7年")
 
+    # 统计数据 (这些字段在保存前需要将抓取的字符串数字转换为整数)
+    article_num = db.Column(db.Text) # 原创文章数 (原Text -> Integer)
+    fans_num = db.Column(db.Text) # 粉丝数 (原Text -> Integer)
+    like_num = db.Column(db.Text) # 点赞数 (原Text -> Integer)
+    comment_num = db.Column(db.Text) # 评论数 (原Text -> Integer)
+    collect_num = db.Column(db.Text) # 收藏数 (新字段 -> Integer)
+    share_num = db.Column(db.Text) # 分享数 (新字段 -> Integer)
+    visit_num = db.Column(db.Text) # 总访问量 (原Text -> Integer)
+    rank = db.Column(db.Text) # 排名 (原Text -> Integer)
+
+    level = db.Column(db.Text)  # 等级
+    score = db.Column(db.Text) # 原来是 Text，改为 Integer 更合理
 
 class Categorize(db.Model):
     """

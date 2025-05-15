@@ -8,7 +8,6 @@ from datetime import datetime
 
 from flask import Blueprint, jsonify, request
 from common.result.result import Result
-from extensions import cache
 from models import Categorize, Article
 
 cs = Blueprint('cs', __name__)

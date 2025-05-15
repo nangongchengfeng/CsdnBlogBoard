@@ -3,7 +3,6 @@ from datetime import datetime
 from flask import Flask, render_template
 
 from api.csdn import cs, GetArticle
-from extensions import cache
 from models import db, Info, Categorize, Article
 
 # Initialize Flask app
@@ -45,20 +44,25 @@ def index():
     # 获取用户信息（假设从数据库查询）
     # 获取用户信息
     info_data = Info.query.first()
+
     if info_data:
         result = {
-            'id': info_data.id,
-            'date': info_data.date,
-            'head_img': info_data.head_img,
-            'author_name': info_data.author_name,
-            'article_num': info_data.article_num,
-            'fans_num': info_data.fans_num,
-            'like_num': info_data.like_num,
-            'comment_num': info_data.comment_num,
-            'level': info_data.level,
-            'visit_num': info_data.visit_num,
-            'score': info_data.score,
-            'rank': info_data.rank
+            'id': info_data.id,  # 自增主键 ID
+            'date': info_data.date,  # 抓取时间，格式如 "YYYY-MM-DD HH:MM:SS"
+            'head_img': info_data.head_img,  # 用户头像链接 URL
+            'author_name': info_data.author_name,  # 作者用户名
+            'article_num': info_data.article_num,  # 原创文章数量（整数）
+            'fans_num': info_data.fans_num,  # 粉丝数量（整数）
+            'like_num': info_data.like_num,  # 点赞总数（整数）
+            'comment_num': info_data.comment_num,  # 评论总数（整数）
+            'collect_num': info_data.collect_num,  # 收藏总数（整数）
+            'share_num': info_data.share_num,  # 分享总数（整数）
+            'visit_num': info_data.visit_num,  # 累计访问量（整数）
+            'rank': info_data.rank,  # 排名（整数）
+            'level': info_data.level,  # 等级（文本，如 "Lv.3"）
+            'score': info_data.score,  # 积分/得分（整数）
+            'code_age' : info_data.code_age,  # 编程龄（文本，如 "1 年"）
+
         }
         return render_template('index.html', info=result, years=years,
                                latest_year=latest_year)
